@@ -15,7 +15,7 @@ const shareBtn = document.getElementById('shareBtn');
 
 document.fonts.ready.then(() => { console.log("Шрифты загружены"); });
 
-// Функция запроса к нашему серверу для генерации текста
+// Генерация текста через Puter AI (GPT-4o mini)
 async function generateText(occasion, name) {
     let prompt = `Напиши очень душевное, красивое и уникальное поздравление для события: "${occasion}".`;
     if (name) {
@@ -23,32 +23,16 @@ async function generateText(occasion, name) {
     }
     prompt += ` Текст должен быть емким (2-3 предложения). Без кавычек и без лишних вступлений. Только сам текст поздравления.`;
     
-    const response = await fetch('/api/generate-text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Text generation failed");
-    return data.text;
+    // Puter возвращает объект, берем сообщение из message.content
+    const response = await puter.ai.chat(prompt);
+    return response.message.content;
 }
 
-// Функция запроса к нашему серверу для генерации картинки
+// Генерация картинки через Puter AI (DALL-E 3)
 async function generateImage(imagePrompt) {
-    const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: imagePrompt })
-    });
-    
-    if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || "Image generation failed");
-    }
-    
-    // Превращаем ответ сервера (бинарный код) в ссылку на картинку
-    const blob = await response.blob();
-    return URL.createObjectURL(blob);
+    // Возвращает HTML <img> элемент
+    const imgElement = await puter.ai.txt2img(imagePrompt);
+    return imgElement.src;
 }
 
 // Разбивка текста на строки с учетом ширины
@@ -96,9 +80,10 @@ generateBtn.addEventListener('click', async () => {
             generateImage(imagePrompt)
         ]);
 
-        // Загружаем картинку по созданной ссылке
+        // Загружаем сгенерированную картинку
         const img = await new Promise((resolve, reject) => {
             const image = new Image();
+            image.crossOrigin = "anonymous";
             image.onload = () => resolve(image);
             image.onerror = () => reject(new Error("Image load failed"));
             image.src = imageUrl;
@@ -148,7 +133,7 @@ generateBtn.addEventListener('click', async () => {
         console.error("Детали ошибки:", error);
         loadingState.innerHTML = `
             <p style="color: #ff4444;">⚠️ Произошла ошибка генерации.</p>
-            <p style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 10px;">${error.message}<br>Попробуйте еще раз через минуту.</p>
+            <p style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 10px;">${error.message}<br>Попробуйте еще раз.</p>
             <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #ff00cc; color: white; border: none; border-radius: 8px; cursor: pointer;">Попробовать снова</button>
         `;
     } finally {
