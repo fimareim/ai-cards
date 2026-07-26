@@ -24,7 +24,7 @@ async function generateText(occasion, name) {
     prompt += ` Текст должен быть емким (2-3 предложения). Без кавычек и без лишних вступлений. Только сам текст поздравления.`;
     
     // Puter возвращает объект, берем сообщение из message.content
-    const response = await puter.ai.chat(prompt);
+    const response = await puter.ai.chat(prompt, { model: 'gpt-4o-mini' });
     return response.message.content;
 }
 
