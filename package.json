@@ -1,0 +1,12 @@
+{
+  "name": "ai-card-studio",
+  "version": "1.0.0",
+  "description": "Генератор уникальных иллюстрированных карточек с помощью ИИ",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
