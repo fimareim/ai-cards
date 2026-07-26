@@ -1,19 +1,17 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Card Studio | Генератор открыток</title>
-    <!-- Подключение красивых шрифтов с Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Pacifico&family=Oswald:wght@500&family=Roboto+Slab:wght@600&display=swap" rel="stylesheet">
-    <!-- Подключение стилей -->
     <link rel="stylesheet" href="style.css">
+    <!-- Подключаем бесплатный ИИ напрямую в браузере -->
+    <script src="https://js.puter.com/v2/"></script>
 </head>
 <body>
-    <!-- Анимированный фон -->
     <div class="background-orbs">
         <div class="orb orb1"></div>
         <div class="orb orb2"></div>
@@ -27,7 +25,6 @@
         </header>
 
         <main class="main-content">
-            <!-- Панель управления -->
             <section class="controls-panel glass">
                 <div class="control-group">
                     <label for="occasion">🎉 Повод</label>
@@ -83,14 +80,13 @@
                 </button>
             </section>
 
-            <!-- Область вывода -->
             <section class="output-panel glass">
                 <div class="canvas-wrapper">
                     <canvas id="cardCanvas" width="800" height="600"></canvas>
                     
                     <div id="loadingState" class="loading-state hidden">
                         <div class="spinner"></div>
-                        <p>ИИ творит магию...<br><small>Генерация может занять 10-20 секунд</small></p>
+                        <p>ИИ творит магию...<br><small>Генерация может занять 15-30 секунд</small></p>
                     </div>
                     
                     <div id="placeholderState" class="placeholder-state">
@@ -107,11 +103,10 @@
         </main>
 
         <footer>
-            <p>Сделано с ❤️ используя Pollinations AI | Разместите на GitHub Pages</p>
+            <p>Сделано с ❤️ используя Puter AI | Бесплатный хостинг на GitHub Pages</p>
         </footer>
     </div>
 
-    <!-- Подключение скриптов -->
     <script src="script.js"></script>
 </body>
 </html>
