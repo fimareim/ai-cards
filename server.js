@@ -1,7 +1,10 @@
+const dns = require('dns');
+// ГЛАВНЫЙ ФИКС ДЛЯ RENDER.COM: Заставляем Node.js использовать IPv4 сначала
+dns.setDefaultResultOrder('ipv4first');
+
 const express = require('express');
 const path = require('path');
 const axios = require('axios');
-const https = require('https'); // Добавили модуль для настройки сети
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,10 +13,6 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 const HF_TOKEN = process.env.HF_TOKEN;
-
-// Создаем агента, который принудительно использует IPv4
-// Это обходит баг Render.com с неработающим DNS по умолчанию
-const httpsAgent = new https.Agent({ family: 4 });
 
 // --- ЭНДПОИНТ ГЕНЕРАЦИИ ТЕКСТА ---
 app.post('/api/generate-text', async (req, res) => {
@@ -26,8 +25,7 @@ app.post('/api/generate-text', async (req, res) => {
                 parameters: { max_new_tokens: 150, temperature: 0.7, return_full_text: false }
             },
             {
-                headers: { 'Authorization': `Bearer ${HF_TOKEN}`, 'Content-Type': 'application/json' },
-                httpsAgent: httpsAgent // <-- ПРИМЕНЯЕМ ФИКС СЕТИ
+                headers: { 'Authorization': `Bearer ${HF_TOKEN}`, 'Content-Type': 'application/json' }
             }
         );
         
@@ -35,7 +33,7 @@ app.post('/api/generate-text', async (req, res) => {
         res.json({ text: generatedText });
     } catch (error) {
         console.error("Text API Error:", error.response ? JSON.stringify(error.response.data) : error.message);
-        res.status(500).json({ error: 'Ошибка генерации текста. Подробности в логах сервера.' });
+        res.status(500).json({ error: 'Ошибка генерации текста' });
     }
 });
 
@@ -48,8 +46,7 @@ app.post('/api/generate-image', async (req, res) => {
             { inputs: prompt },
             {
                 headers: { 'Authorization': `Bearer ${HF_TOKEN}`, 'Content-Type': 'application/json' },
-                responseType: 'arraybuffer',
-                httpsAgent: httpsAgent // <-- ПРИМЕНЯЕМ ФИКС СЕТИ
+                responseType: 'arraybuffer'
             }
         );
 
@@ -58,7 +55,7 @@ app.post('/api/generate-image', async (req, res) => {
         
     } catch (error) {
         console.error("Image API Error:", error.response ? error.response.data.toString() : error.message);
-        res.status(500).json({ error: 'Ошибка генерации изображения. Подробности в логах сервера.' });
+        res.status(500).json({ error: 'Ошибка генерации изображения' });
     }
 });
 
@@ -68,5 +65,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
-    if (!HF_TOKEN) console.warn("ВНИМАНИЕ: HF_TOKEN не найден в переменных окружения!");
+    if (!HF_TOKEN) console.warn("ВНИМАНИЕ: HF_TOKEN не найден!");
 });
