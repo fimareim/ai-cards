@@ -1,4 +1,3 @@
-
 // DOM Elements
 const occasionSelect = document.getElementById('occasion');
 const recipientNameInput = document.getElementById('recipientName');
@@ -14,21 +13,42 @@ const actionButtons = document.getElementById('actionButtons');
 const downloadBtn = document.getElementById('downloadBtn');
 const shareBtn = document.getElementById('shareBtn');
 
-// Установка шрифтов для Canvas (важно для корректной отрисовки)
 document.fonts.ready.then(() => { console.log("Шрифты загружены"); });
 
-// Генерация текста через Pollinations Text API
+// Функция запроса к нашему серверу для генерации текста
 async function generateText(occasion, name) {
     let prompt = `Напиши очень душевное, красивое и уникальное поздравление для события: "${occasion}".`;
     if (name) {
         prompt += ` Обратись к имени: ${name}.`;
     }
-    prompt += ` Текст должен быть емким (2-3 предложения). Без кавычек и лишних вступлений. Только сам текст поздравления.`;
+    prompt += ` Текст должен быть емким (2-3 предложения). Без кавычек и без лишних вступлений. Только сам текст поздравления.`;
     
-    const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=mistral`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Text generation failed");
-    return await response.text();
+    const response = await fetch('/api/generate-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Text generation failed");
+    return data.text;
+}
+
+// Функция запроса к нашему серверу для генерации картинки
+async function generateImage(imagePrompt) {
+    const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: imagePrompt })
+    });
+    
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Image generation failed");
+    }
+    
+    // Превращаем ответ сервера (бинарный код) в ссылку на картинку
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
 }
 
 // Разбивка текста на строки с учетом ширины
@@ -65,57 +85,51 @@ generateBtn.addEventListener('click', async () => {
     canvas.classList.add('hidden');
     actionButtons.classList.add('hidden');
     loadingState.classList.remove('hidden');
+    loadingState.innerHTML = '<div class="spinner"></div><p>ИИ творит магию...<br><small>Генерация может занять 15-30 секунд</small></p>';
 
     try {
-        // Динамические промпты
         const imagePrompt = `Illustration for ${occasion}, ${artStyle}, no text, beautiful lighting, highly detailed`;
-        const seed = Math.floor(Math.random() * 10000000);
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=800&height=600&seed=${seed}&nologo=true`;
-
+        
         // Параллельный запрос текста и картинки
-        const [greetingText, img] = await Promise.all([
+        const [greetingText, imageUrl] = await Promise.all([
             generateText(occasion, name),
-            new Promise((resolve, reject) => {
-                const image = new Image();
-                image.crossOrigin = "anonymous";
-                image.onload = () => resolve(image);
-                image.onerror = () => reject(new Error("Image load failed"));
-                image.src = imageUrl;
-            })
+            generateImage(imagePrompt)
         ]);
+
+        // Загружаем картинку по созданной ссылке
+        const img = await new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error("Image load failed"));
+            image.src = imageUrl;
+        });
 
         // --- Отрисовка на Canvas ---
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        // Темный градиент снизу для читабельности текста
         const gradient = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
         gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
         gradient.addColorStop(1, 'rgba(0, 0, 0, 0.85)');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, canvas.height * 0.4, canvas.width, canvas.height * 0.6);
 
-        // Настройка текста
         ctx.fillStyle = color;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        // Извлекаем размер шрифта из строки (например, "32px ...") для расчета межстрочного интервала
         const fontSize = parseInt(font.match(/\d+/)[0]);
         ctx.font = font;
         
-        // Тень для текста
         ctx.shadowColor = "rgba(0,0,0,0.8)";
         ctx.shadowBlur = 10;
         ctx.shadowOffsetX = 2;
         ctx.shadowOffsetY = 2;
 
-        // Разбиваем текст на строки и вычисляем общую высоту
         const maxWidth = canvas.width - 80;
         const lines = getWrappedLines(ctx, greetingText, maxWidth);
         const lineHeight = fontSize * 1.3;
         const totalTextHeight = lines.length * lineHeight;
         
-        // Центрируем блок текста в нижней трети открытки
         let startY = canvas.height - 60 - (totalTextHeight / 2) + (lineHeight / 2);
 
         lines.forEach(line => {
@@ -123,7 +137,6 @@ generateBtn.addEventListener('click', async () => {
             startY += lineHeight;
         });
 
-        // Сброс тени
         ctx.shadowColor = "transparent";
 
         // UI: Success state
@@ -132,8 +145,12 @@ generateBtn.addEventListener('click', async () => {
         actionButtons.classList.remove('hidden');
 
     } catch (error) {
-        console.error("Ошибка генерации:", error);
-        loadingState.innerHTML = '<p style="color: #ff4444;">Произошла ошибка. Сервер ИИ перегружен. Попробуйте еще раз через минуту.</p>';
+        console.error("Детали ошибки:", error);
+        loadingState.innerHTML = `
+            <p style="color: #ff4444;">⚠️ Произошла ошибка генерации.</p>
+            <p style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 10px;">${error.message}<br>Попробуйте еще раз через минуту.</p>
+            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #ff00cc; color: white; border: none; border-radius: 8px; cursor: pointer;">Попробовать снова</button>
+        `;
     } finally {
         generateBtn.disabled = false;
         generateBtn.querySelector('.btn-text').classList.remove('hidden');
@@ -161,7 +178,7 @@ shareBtn.addEventListener('click', async () => {
                     text: 'Смотри, какую открытку я сгенерировал!'
                 });
             } else {
-                alert('Ваш браузер не поддерживает прямоеsharing изображений. Скачайте открытку и отправьте вручную.');
+                alert('Ваш браузер не поддерживает прямое sharing изображений. Скачайте открытку и отправьте вручную.');
             }
         });
     } catch (err) {
