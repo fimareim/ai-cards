@@ -1,1 +1,117 @@
 
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Card Studio | Генератор открыток</title>
+    <!-- Подключение красивых шрифтов с Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Pacifico&family=Oswald:wght@500&family=Roboto+Slab:wght@600&display=swap" rel="stylesheet">
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Анимированный фон -->
+    <div class="background-orbs">
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <h1>✨ AI Card Studio</h1>
+            <p>Создавайте уникальные открытки с помощью искусственного интеллекта</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Панель управления -->
+            <section class="controls-panel glass">
+                <div class="control-group">
+                    <label for="occasion">🎉 Повод</label>
+                    <select id="occasion">
+                        <option value="День рождения">День рождения</option>
+                        <option value="Новый год">Новый год</option>
+                        <option value="Свадьба">Свадьба</option>
+                        <option value="Мотивация и успех">Мотивация</option>
+                        <option value="Извинение">Извинение</option>
+                        <option value="Любовь и романтика">Романтика</option>
+                        <option value="Выпускной">Выпускной</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="recipientName">👤 Имя получателя (необязательно)</label>
+                    <input type="text" id="recipientName" placeholder="Например: Анна, Максим...">
+                </div>
+
+                <div class="control-group">
+                    <label for="artStyle">🎨 Стиль иллюстрации</label>
+                    <select id="artStyle">
+                        <option value="digital art, vibrant colors, masterpiece">Цифровой арт (Яркий)</option>
+                        <option value="watercolor painting, soft colors, artistic">Акварель (Мягкий)</option>
+                        <option value="3d render, pixar style, cute, octane render">3D Мультфильм (Pixar)</option>
+                        <option value="cyberpunk style, neon lights, futuristic">Киберпанк (Неон)</option>
+                        <option value="anime style, studio ghibli, detailed">Аниме (Ghibli)</option>
+                        <option value="vintage retro style, 80s aesthetic">Ретро (80-е)</option>
+                        <option value="minimalist flat design, vector art">Минимализм (Плоский)</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <div class="control-group">
+                        <label for="fontStyle">✒️ Шрифт текста</label>
+                        <select id="fontStyle">
+                            <option value="bold 32px 'Inter', sans-serif">Inter (Современный)</option>
+                            <option value="32px 'Pacifico', cursive">Pacifico (Рукописный)</option>
+                            <option value="bold 36px 'Oswald', sans-serif">Oswald (Строгий)</option>
+                            <option value="bold 32px 'Roboto Slab', serif">Roboto Slab (Классика)</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="textColor">🌈 Цвет текста</label>
+                        <input type="color" id="textColor" value="#ffffff">
+                    </div>
+                </div>
+
+                <button id="generateBtn" class="primary-btn">
+                    <span class="btn-text">Сгенерировать открытку</span>
+                    <span class="btn-loader hidden"></span>
+                </button>
+            </section>
+
+            <!-- Область вывода -->
+            <section class="output-panel glass">
+                <div class="canvas-wrapper">
+                    <canvas id="cardCanvas" width="800" height="600"></canvas>
+                    
+                    <div id="loadingState" class="loading-state hidden">
+                        <div class="spinner"></div>
+                        <p>ИИ творит магию...<br><small>Генерация может занять 10-20 секунд</small></p>
+                    </div>
+                    
+                    <div id="placeholderState" class="placeholder-state">
+                        <span class="placeholder-icon">🖼️</span>
+                        <p>Ваша открытка появится здесь</p>
+                    </div>
+                </div>
+
+                <div class="action-buttons hidden" id="actionButtons">
+                    <button id="downloadBtn" class="secondary-btn">⬇️ Скачать</button>
+                    <button id="shareBtn" class="secondary-btn">🔗 Поделиться</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Сделано с ❤️ используя Pollinations AI | Разместите на GitHub Pages</p>
+        </footer>
+    </div>
+
+    <!-- Подключение скриптов -->
+    <script src="script.js"></script>
+</body>
+</html>
